@@ -41,11 +41,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // ── Placeholder routes (built Day 6 onwards) ──────────────────────────
-    // Farmers
-    Route::get('/farmers',           fn() => 'Farmers list - coming Day 6')->name('farmers.index');
-    Route::get('/farmers/create',    fn() => 'Farmer create - coming Day 6')->name('farmers.create');
-    Route::get('/farmers/{id}',      fn($id) => 'Farmer show - coming Day 6')->name('farmers.show');
-    Route::get('/farmers/{id}/edit', fn($id) => 'Farmer edit - coming Day 6')->name('farmers.edit');
+    // Farmers - full CRUD
+    Route::resource('farmers', \App\Http\Controllers\FarmerController::class);
 
     // Lands & Crops
     Route::get('/lands',  fn() => 'Lands - coming Day 7')->name('lands.index');
