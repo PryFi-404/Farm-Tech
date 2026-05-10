@@ -44,9 +44,13 @@ Route::middleware('auth')->group(function () {
     // Farmers - full CRUD
     Route::resource('farmers', \App\Http\Controllers\FarmerController::class);
 
-    // Lands & Crops
-    Route::get('/lands',  fn() => 'Lands - coming Day 7')->name('lands.index');
-    Route::get('/crops',  fn() => 'Crops - coming Day 7')->name('crops.index');
+    // Lands & Crops - Day 7
+    Route::resource('lands', \App\Http\Controllers\LandController::class)->except(['show']);
+    Route::resource('crops', \App\Http\Controllers\CropController::class)->only(['index','create','store','destroy']);
+    Route::get('/crop-history',         [\App\Http\Controllers\CropHistoryController::class, 'index'])->name('crop-history.index');
+    Route::get('/crop-history/create',  [\App\Http\Controllers\CropHistoryController::class, 'create'])->name('crop-history.create');
+    Route::post('/crop-history',        [\App\Http\Controllers\CropHistoryController::class, 'store'])->name('crop-history.store');
+    Route::delete('/crop-history/{cropHistory}', [\App\Http\Controllers\CropHistoryController::class, 'destroy'])->name('crop-history.destroy');
 
     // SHG
     Route::get('/shgs',  fn() => 'SHGs - coming Day 8')->name('shgs.index');
