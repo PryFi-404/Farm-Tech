@@ -40,6 +40,12 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile',  [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    // Notifications - Day 12
+    Route::get('/notifications',                    [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/mark-all-read',     [\App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
+    Route::get('/notifications/{id}/read',          [\App\Http\Controllers\NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::delete('/notifications/{id}',            [\App\Http\Controllers\NotificationController::class, 'destroy'])->name('notifications.destroy');
+
     // ── Placeholder routes (built Day 6 onwards) ──────────────────────────
     // Farmers - full CRUD
     Route::resource('farmers', \App\Http\Controllers\FarmerController::class);

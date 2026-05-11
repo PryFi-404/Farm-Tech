@@ -6,6 +6,9 @@ use App\Http\Requests\StoreApplicationRequest;
 use App\Models\Farmer;
 use App\Models\Scheme;
 use App\Models\SchemeApplication;
+use App\Models\User;
+use App\Notifications\ApplicationStatusChanged;
+use App\Notifications\ApplicationSubmitted;
 use Illuminate\Http\Request;
 
 class SchemeApplicationController extends Controller
@@ -101,13 +104,20 @@ class SchemeApplicationController extends Controller
                 ->with('error', 'You have already applied for this scheme.');
         }
 
-        SchemeApplication::create([
+        $application = SchemeApplication::create([
             'farmer_id'    => $farmerId,
             'scheme_id'    => $request->scheme_id,
             'remarks'      => $request->remarks,
             'applied_date' => $request->applied_date,
             'status'       => 'pending',
         ]);
+
+        // 🔔 Notify all admins and officers
+        $application->load(['farmer.user', 'scheme']);
+        $staffUsers = User::whereIn('role', ['admin', 'officer'])->get();
+        foreach ($staffUsers as $staff) {
+            $staff->notify(new ApplicationSubmitted($application));
+        }
 
         return redirect()->route('applications.index')
             ->with('success', 'Application submitted successfully!');
@@ -141,6 +151,10 @@ class SchemeApplicationController extends Controller
             'approved_date'  => now()->toDateString(),
         ]);
 
+        // 🔔 Notify the farmer
+        $application->refresh()->load(['farmer.user', 'scheme']);
+        $application->farmer?->user?->notify(new ApplicationStatusChanged($application, 'approved'));
+
         return back()->with('success', '✅ Application approved! ₹' . number_format($request->subsidy_amount) . ' benefit assigned.');
     }
 
@@ -159,6 +173,10 @@ class SchemeApplicationController extends Controller
             'approved_by'  => auth()->id(),
             'approved_date'=> now()->toDateString(),
         ]);
+
+        // 🔔 Notify the farmer
+        $application->refresh()->load(['farmer.user', 'scheme']);
+        $application->farmer?->user?->notify(new ApplicationStatusChanged($application, 'rejected'));
 
         return back()->with('success', 'Application rejected with remarks.');
     }

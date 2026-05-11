@@ -7,6 +7,8 @@
     <title>{{ isset($title) ? $title . ' — ' : '' }}FarmTech MIS</title>
     <meta name="description" content="FarmTech MIS — Agriculture Management Information System for SHGs, FPGs and Farmers.">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    {{-- Alpine.js for dropdown interactivity --}}
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="font-sans antialiased bg-gray-50">
 
@@ -191,19 +193,97 @@
                 {{-- Right: Notifications + User --}}
                 <div class="flex items-center gap-2">
 
-                    {{-- Notification Bell --}}
-                    <a href="#" class="relative p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                        </svg>
-                        @php $unread = auth()->user()->appNotifications()->where('is_read', false)->count(); @endphp
-                        @if($unread > 0)
-                        <span class="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center leading-none">
-                            {{ $unread > 9 ? '9+' : $unread }}
-                        </span>
-                        @endif
-                    </a>
+                    {{-- Notification Bell with Dropdown --}}
+                    @php
+                        $unreadCount   = auth()->user()->unreadNotifications->count();
+                        $recentNotifs  = auth()->user()->notifications()->latest()->limit(5)->get();
+                    @endphp
+                    <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                        <button @click="open = !open"
+                                class="relative p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                            </svg>
+                            @if($unreadCount > 0)
+                            <span class="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center leading-none font-bold animate-pulse">
+                                {{ $unreadCount > 9 ? '9+' : $unreadCount }}
+                            </span>
+                            @endif
+                        </button>
+
+                        {{-- Dropdown Panel --}}
+                        <div x-show="open"
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100"
+                             x-transition:leave-end="opacity-0"
+                             class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden"
+                             style="display:none;">
+
+                            {{-- Dropdown Header --}}
+                            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
+                                <span class="text-sm font-semibold text-gray-700">
+                                    🔔 Notifications
+                                    @if($unreadCount > 0)
+                                    <span class="ml-1 text-xs font-bold text-white bg-red-500 px-1.5 py-0.5 rounded-full">
+                                        {{ $unreadCount }}
+                                    </span>
+                                    @endif
+                                </span>
+                                @if($unreadCount > 0)
+                                <form method="POST" action="{{ route('notifications.markAllRead') }}">
+                                    @csrf
+                                    <button type="submit" class="text-xs text-farm-600 hover:text-farm-800 font-medium">
+                                        Mark all read
+                                    </button>
+                                </form>
+                                @endif
+                            </div>
+
+                            {{-- Recent Notifications --}}
+                            <div class="max-h-72 overflow-y-auto">
+                                @forelse($recentNotifs as $notif)
+                                @php
+                                    $d = $notif->data;
+                                    $isRead = $notif->read_at !== null;
+                                    $colorDot = match($d['color'] ?? 'blue') {
+                                        'green' => 'bg-green-400',
+                                        'red'   => 'bg-red-400',
+                                        default => 'bg-blue-400',
+                                    };
+                                @endphp
+                                <a href="{{ route('notifications.read', $notif->id) }}"
+                                   class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50
+                                          {{ !$isRead ? 'bg-blue-50/40' : '' }}">
+                                    <div class="text-lg shrink-0 mt-0.5">{{ $d['icon'] ?? '🔔' }}</div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-xs font-semibold text-gray-800 leading-snug truncate">
+                                            {{ $d['title'] ?? 'Notification' }}
+                                        </p>
+                                        <p class="text-xs text-gray-500 truncate mt-0.5">{{ $d['message'] ?? '' }}</p>
+                                        <p class="text-xs text-gray-400 mt-0.5">{{ $notif->created_at->diffForHumans() }}</p>
+                                    </div>
+                                    @if(!$isRead)
+                                    <span class="w-2 h-2 rounded-full {{ $colorDot }} shrink-0 mt-1.5"></span>
+                                    @endif
+                                </a>
+                                @empty
+                                <div class="px-4 py-8 text-center text-sm text-gray-400">
+                                    No notifications yet.
+                                </div>
+                                @endforelse
+                            </div>
+
+                            {{-- View All --}}
+                            <a href="{{ route('notifications.index') }}"
+                               class="block text-center text-xs font-medium text-farm-600 hover:text-farm-800 py-3 border-t border-gray-100 bg-gray-50 transition-colors">
+                                View all notifications →
+                            </a>
+                        </div>
+                    </div>
 
                     {{-- User Avatar --}}
                     <div class="flex items-center gap-2 pl-2 border-l border-gray-200">
