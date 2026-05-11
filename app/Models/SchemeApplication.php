@@ -38,6 +38,12 @@ class SchemeApplication extends Model
         return $this->belongsTo(User::class, 'approved_by');
     }
 
+    // Alias used in views
+    public function reviewedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
     // Badge color helper for status
     public function getStatusBadgeAttribute()
     {

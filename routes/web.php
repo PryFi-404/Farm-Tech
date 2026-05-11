@@ -52,14 +52,19 @@ Route::middleware('auth')->group(function () {
     Route::post('/crop-history',        [\App\Http\Controllers\CropHistoryController::class, 'store'])->name('crop-history.store');
     Route::delete('/crop-history/{cropHistory}', [\App\Http\Controllers\CropHistoryController::class, 'destroy'])->name('crop-history.destroy');
 
-    // SHG
-    Route::get('/shgs',  fn() => 'SHGs - coming Day 8')->name('shgs.index');
+    // SHG / FPG - Day 8
+    Route::resource('shgs', \App\Http\Controllers\ShgController::class);
+    Route::post('/shgs/{shg}/members',         [\App\Http\Controllers\ShgController::class, 'addMember'])->name('shgs.members.add');
+    Route::delete('/shgs/{shg}/members/{member}', [\App\Http\Controllers\ShgController::class, 'removeMember'])->name('shgs.members.remove');
 
-    // Schemes & Applications
-    Route::get('/schemes',                          fn() => 'Schemes - coming Day 9')->name('schemes.index');
-    Route::get('/applications',                     fn() => 'Applications - coming Day 9')->name('applications.index');
-    Route::get('/applications/create',              fn() => 'Apply - coming Day 9')->name('applications.create');
-    Route::get('/applications/{id}',                fn($id) => 'Application show - coming Day 9')->name('applications.show');
+    // Schemes - Day 9
+    Route::resource('schemes', \App\Http\Controllers\SchemeController::class);
+    Route::post('/schemes/{scheme}/toggle', [\App\Http\Controllers\SchemeController::class, 'toggleStatus'])->name('schemes.toggle');
+
+    // Applications - Day 9
+    Route::resource('applications', \App\Http\Controllers\SchemeApplicationController::class)->except(['edit','update']);
+    Route::post('/applications/{application}/approve', [\App\Http\Controllers\SchemeApplicationController::class, 'approve'])->name('applications.approve');
+    Route::post('/applications/{application}/reject',  [\App\Http\Controllers\SchemeApplicationController::class, 'reject'])->name('applications.reject');
 
     // Reports
     Route::get('/reports', fn() => 'Reports - coming Day 11')->name('reports.index');
