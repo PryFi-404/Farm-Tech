@@ -210,6 +210,7 @@
 
 @push('scripts')
 <script>
+document.addEventListener("DOMContentLoaded", function() {
 // ── Shared color palette ─────────────────────────────────────────────────
 const palette = ['#16a34a','#2563eb','#9333ea','#ea580c','#0891b2','#dc2626','#ca8a04','#059669'];
 const months  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -360,6 +361,7 @@ new Chart(document.getElementById('seasonChart'), {
         }]
     },
     options: { responsive: true, cutout: '60%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } } }
+});
 });
 </script>
 @endpush

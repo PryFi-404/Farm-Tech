@@ -38,7 +38,18 @@
                     @endif
                 </div>
             </div>
-            @if(auth()->user()->isAdmin() || auth()->user()->isOfficer())
+            @if(auth()->user()->isFarmer())
+            {{-- Farmer: show apply button if scheme is active --}}
+            @if($scheme->is_active)
+            <div class="shrink-0">
+                <a href="{{ route('applications.create', ['scheme_id' => $scheme->id]) }}"
+                   class="btn-primary text-sm bg-white/20 hover:bg-white/30 border border-white/30">
+                    Apply for This Scheme
+                </a>
+            </div>
+            @endif
+            @else
+            {{-- Admin / Officer actions --}}
             <div class="flex gap-2 shrink-0">
                 <a href="{{ route('applications.create', ['scheme_id' => $scheme->id]) }}"
                    class="btn-primary text-sm bg-white/20 hover:bg-white/30 border border-white/30">
@@ -106,7 +117,7 @@
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
             <h3 class="text-sm font-semibold text-gray-700">
-                Applications for this Scheme
+                {{ auth()->user()->isFarmer() ? 'My Application Status' : 'All Applications' }}
                 <span class="ml-2 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
                     {{ $applications->total() }}
                 </span>
@@ -125,8 +136,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($applications as $app)
+                @forelse($applications as $app)
                     <tr>
+                        @if(!auth()->user()->isFarmer())
+                        {{-- Admin/Officer see farmer name --}}
                         <td>
                             <a href="{{ route('farmers.show', $app->farmer_id) }}"
                                class="font-medium text-farm-600 hover:underline text-sm">
@@ -134,6 +147,7 @@
                             </a>
                             <p class="text-xs text-gray-400">{{ $app->farmer?->village }}</p>
                         </td>
+                        @endif
                         <td class="text-sm text-gray-600">{{ $app->applied_date?->format('d M Y') }}</td>
                         <td>
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $app->status_badge }}">
@@ -149,9 +163,11 @@
                                class="text-farm-600 hover:text-farm-800 text-xs font-medium">View →</a>
                         </td>
                     </tr>
-                    @empty
-                    <tr><td colspan="6" class="text-center py-10 text-gray-400">No applications yet for this scheme.</td></tr>
-                    @endforelse
+                @empty
+                    <tr><td colspan="6" class="text-center py-10 text-gray-400">
+                        {{ auth()->user()->isFarmer() ? "You haven't applied for this scheme yet." : 'No applications yet.' }}
+                    </td></tr>
+                @endforelse
                 </tbody>
             </table>
         </div>

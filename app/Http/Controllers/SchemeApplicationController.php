@@ -65,11 +65,17 @@ class SchemeApplicationController extends Controller
 
         // If logged-in user IS a farmer → force-select their own profile
         if (auth()->user()->isFarmer()) {
-            $ownFarmer      = auth()->user()->farmer;
-            $farmers        = collect([$ownFarmer]); // Only themselves
+            $ownFarmer = auth()->user()->farmer;
+
+            // Guard: farmer user account must be linked to a farmer profile
+            if (!$ownFarmer) {
+                return redirect()->route('farmer.dashboard')
+                    ->with('error', 'Your account is not linked to a farmer profile. Please contact the administrator.');
+            }
+
+            $farmers        = collect([$ownFarmer]);
             $selectedFarmer = $ownFarmer;
         } else {
-            // Admin / Officer can apply on behalf of any farmer
             $farmers        = Farmer::with('user')->get();
             $selectedFarmer = $request->farmer_id
                 ? Farmer::with('user')->find($request->farmer_id)
@@ -125,9 +131,18 @@ class SchemeApplicationController extends Controller
 
     /**
      * Application detail view
+     * 🔒 Farmers can only view their OWN applications
      */
     public function show(SchemeApplication $application)
     {
+        // Security: Farmers can only see applications that belong to them
+        if (auth()->user()->isFarmer()) {
+            $farmerRecord = auth()->user()->farmer;
+            if (!$farmerRecord || $application->farmer_id !== $farmerRecord->id) {
+                abort(403, 'You are not authorised to view this application.');
+            }
+        }
+
         $application->load(['farmer.user', 'farmer.lands', 'scheme', 'reviewedBy']);
 
         return view('applications.show', compact('application'));

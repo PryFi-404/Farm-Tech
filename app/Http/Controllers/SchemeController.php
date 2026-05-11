@@ -59,22 +59,44 @@ class SchemeController extends Controller
 
     /**
      * Scheme detail + its applications
+     * 🔒 Farmers only see their own application for this scheme
      */
     public function show(Scheme $scheme)
     {
         $scheme->loadCount('applications');
-        $applications = $scheme->applications()
-            ->with('farmer.user')
-            ->latest()
-            ->paginate(10);
 
-        $stats = [
-            'total'    => $scheme->applications()->count(),
-            'approved' => $scheme->applications()->where('status', 'approved')->count(),
-            'pending'  => $scheme->applications()->where('status', 'pending')->count(),
-            'rejected' => $scheme->applications()->where('status', 'rejected')->count(),
-            'disbursed'=> $scheme->applications()->sum('subsidy_amount'),
-        ];
+        if (auth()->user()->isFarmer()) {
+            // Farmer sees ONLY their own application for this scheme
+            $farmerId     = auth()->user()->farmer?->id;
+            $applications = $scheme->applications()
+                ->with('farmer.user')
+                ->where('farmer_id', $farmerId)
+                ->latest()
+                ->paginate(10);
+
+            // Personal stats only
+            $stats = [
+                'total'    => $farmerId ? $scheme->applications()->where('farmer_id', $farmerId)->count() : 0,
+                'approved' => $farmerId ? $scheme->applications()->where('farmer_id', $farmerId)->where('status', 'approved')->count() : 0,
+                'pending'  => $farmerId ? $scheme->applications()->where('farmer_id', $farmerId)->where('status', 'pending')->count() : 0,
+                'rejected' => $farmerId ? $scheme->applications()->where('farmer_id', $farmerId)->where('status', 'rejected')->count() : 0,
+                'disbursed'=> $farmerId ? $scheme->applications()->where('farmer_id', $farmerId)->sum('subsidy_amount') : 0,
+            ];
+        } else {
+            // Admin / Officer see all applications
+            $applications = $scheme->applications()
+                ->with('farmer.user')
+                ->latest()
+                ->paginate(10);
+
+            $stats = [
+                'total'    => $scheme->applications()->count(),
+                'approved' => $scheme->applications()->where('status', 'approved')->count(),
+                'pending'  => $scheme->applications()->where('status', 'pending')->count(),
+                'rejected' => $scheme->applications()->where('status', 'rejected')->count(),
+                'disbursed'=> $scheme->applications()->sum('subsidy_amount'),
+            ];
+        }
 
         return view('schemes.show', compact('scheme', 'applications', 'stats'));
     }
