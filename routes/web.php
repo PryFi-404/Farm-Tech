@@ -66,8 +66,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/applications/{application}/approve', [\App\Http\Controllers\SchemeApplicationController::class, 'approve'])->name('applications.approve');
     Route::post('/applications/{application}/reject',  [\App\Http\Controllers\SchemeApplicationController::class, 'reject'])->name('applications.reject');
 
-    // Reports
-    Route::get('/reports', fn() => 'Reports - coming Day 11')->name('reports.index');
+    // Reports & Analytics - Day 10 (admin + officer only)
+    Route::middleware('role:admin,officer')->group(function () {
+        Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
+    });
 });
 
 require __DIR__.'/auth.php';
