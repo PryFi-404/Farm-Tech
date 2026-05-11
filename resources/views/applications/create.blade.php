@@ -10,6 +10,21 @@
             {{-- Farmer --}}
             <div>
                 <label class="form-label">Farmer <span class="text-red-500">*</span></label>
+
+                @if(auth()->user()->isFarmer())
+                {{-- Farmers see only their own name (locked) --}}
+                <div class="form-input bg-gray-50 text-gray-700 flex items-center gap-2 cursor-not-allowed">
+                    <svg class="w-4 h-4 text-farm-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                    <span class="font-medium">{{ $selectedFarmer?->user?->name }}</span>
+                    <span class="text-gray-400 text-xs ml-1">— {{ $selectedFarmer?->village }}, {{ $selectedFarmer?->district }}</span>
+                </div>
+                <input type="hidden" name="farmer_id" value="{{ $selectedFarmer?->id }}">
+                <p class="text-xs text-gray-400 mt-1">You are applying as yourself.</p>
+
+                @else
+                {{-- Admin / Officer see full dropdown --}}
                 <select name="farmer_id" class="form-input" required>
                     <option value="">Select Farmer</option>
                     @foreach($farmers as $f)
@@ -19,6 +34,8 @@
                     </option>
                     @endforeach
                 </select>
+                @endif
+
                 @error('farmer_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
 
