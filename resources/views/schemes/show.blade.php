@@ -44,6 +44,13 @@
                    class="btn-primary text-sm bg-white/20 hover:bg-white/30 border border-white/30">
                     Apply for Farmer
                 </a>
+                <a href="{{ route('pdf.scheme', $scheme->id) }}"
+                   class="btn-secondary text-sm bg-white/15 hover:bg-white/25 border border-white/30 text-white">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Download PDF
+                </a>
                 @if(auth()->user()->isAdmin())
                 <a href="{{ route('schemes.edit', $scheme->id) }}" class="btn-secondary text-sm">Edit</a>
                 @endif

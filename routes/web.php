@@ -69,6 +69,11 @@ Route::middleware('auth')->group(function () {
     // Reports & Analytics - Day 10 (admin + officer only)
     Route::middleware('role:admin,officer')->group(function () {
         Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
+
+        // PDF Downloads - Day 11
+        Route::get('/pdf/farmer/{farmer}',    [\App\Http\Controllers\PdfController::class, 'farmerProfile'])->name('pdf.farmer');
+        Route::get('/pdf/scheme/{scheme}',    [\App\Http\Controllers\PdfController::class, 'schemeSummary'])->name('pdf.scheme');
+        Route::get('/pdf/analytics',          [\App\Http\Controllers\PdfController::class, 'analyticsSummary'])->name('pdf.analytics');
     });
 });
 

@@ -6,14 +6,23 @@
             <h2 class="text-lg font-bold text-gray-800">Analytics Overview</h2>
             <p class="text-sm text-gray-400">Data-driven insights across all modules</p>
         </div>
-        <form method="GET" action="{{ route('reports.index') }}" class="flex items-center gap-2">
-            <label class="text-sm text-gray-500 font-medium">Year:</label>
-            <select name="year" class="form-input text-sm py-1.5 w-28" onchange="this.form.submit()">
-                @foreach($availableYears->merge([date('Y')]) ->unique()->sort()->reverse() as $y)
-                <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
-                @endforeach
-            </select>
-        </form>
+        <div class="flex items-center gap-3">
+            <form method="GET" action="{{ route('reports.index') }}" class="flex items-center gap-2">
+                <label class="text-sm text-gray-500 font-medium">Year:</label>
+                <select name="year" class="form-input text-sm py-1.5 w-28" onchange="this.form.submit()">
+                    @foreach($availableYears->merge([date('Y')])->unique()->sort()->reverse() as $y)
+                    <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
+                    @endforeach
+                </select>
+            </form>
+            <a href="{{ route('pdf.analytics') }}"
+               class="btn-primary text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Download Report PDF
+            </a>
+        </div>
     </div>
 
     {{-- ── TOP SUMMARY CARDS ──────────────────────────────────────────── --}}
